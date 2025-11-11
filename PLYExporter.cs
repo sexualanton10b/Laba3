@@ -7,8 +7,10 @@ namespace Laba3
 {
     public class PLYExporter
     {
+        // Экспортирует вершины и грани в формат PLY (ASCII)
         public static void ExportToPLY(string filePath, List<Vertex> vertices, List<Triangle> faces)
         {
+            // Проверяем, что есть данные
             if (vertices == null || vertices.Count == 0)
                 throw new ArgumentException("Вершины пусты");
 
@@ -17,6 +19,7 @@ namespace Laba3
 
             using (StreamWriter writer = new StreamWriter(filePath, false, Encoding.ASCII))
             {
+                // Пишем заголовок PLY файла
                 writer.WriteLine("ply");
                 writer.WriteLine("format ascii 1.0");
                 writer.WriteLine("comment Depth map to 3D mesh");
@@ -28,9 +31,11 @@ namespace Laba3
                 writer.WriteLine("property list uchar int vertex_index");
                 writer.WriteLine("end_header");
 
+                // Пишем все вершины
                 foreach (var v in vertices)
                     writer.WriteLine(v.X + " " + v.Y + " " + v.Z);
 
+                // Пишем все грани (треугольники)
                 foreach (var f in faces)
                     writer.WriteLine("3 " + f.V1 + " " + f.V2 + " " + f.V3);
             }
