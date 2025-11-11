@@ -14,7 +14,7 @@ namespace Laba3
             Console.WriteLine();
 
             // Ищем файл в текущей папке
-            string depthMapPath = "DepthMap_Test.dat";
+            string depthMapPath = "DepthMap_8.dat";
 
             if (!File.Exists(depthMapPath))
             {

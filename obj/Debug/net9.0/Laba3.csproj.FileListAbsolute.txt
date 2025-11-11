@@ -28,3 +28,4 @@ C:\Users\PC\Desktop\7сем\3D\3DLaba3\Laba3\obj\Debug\net9.0\refint\Laba3.dll
 C:\Users\PC\Desktop\7сем\3D\3DLaba3\Laba3\obj\Debug\net9.0\Laba3.pdb
 C:\Users\PC\Desktop\7сем\3D\3DLaba3\Laba3\obj\Debug\net9.0\Laba3.genruntimeconfig.cache
 C:\Users\PC\Desktop\7сем\3D\3DLaba3\Laba3\obj\Debug\net9.0\ref\Laba3.dll
+C:\Users\PC\Desktop\7сем\3D\3DLaba3\Laba3\obj\Debug\net9.0\Laba3.sourcelink.json

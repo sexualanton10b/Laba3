@@ -23,6 +23,8 @@ namespace Laba3
         private float rotationY = 0.0f;
         private float zoom = -50.0f;
 
+        private List<Vertex> vertices;
+
         public DepthMapViewer(List<Vertex> vertices, List<Triangle> triangles)
             : base(GameWindowSettings.Default,
                    new NativeWindowSettings
@@ -32,6 +34,7 @@ namespace Laba3
                    })
         {
             Console.WriteLine("Инициализирую визуализатор...");
+            this.vertices = vertices;
             triangleCount = triangles.Count;
             
             try
@@ -72,6 +75,7 @@ namespace Laba3
                 model = Matrix4.Identity;
 
                 Console.WriteLine("Шейдеры скомпилированы");
+                Console.WriteLine("Освещение включено - источник света движется с камерой");
             }
             catch (Exception ex)
             {
@@ -99,10 +103,22 @@ namespace Laba3
             int modelLoc = GL.GetUniformLocation(shaderProgram, "model");
             int viewLoc = GL.GetUniformLocation(shaderProgram, "view");
             int projLoc = GL.GetUniformLocation(shaderProgram, "projection");
+            int normalMatLoc = GL.GetUniformLocation(shaderProgram, "normalMatrix");
 
             GL.UniformMatrix4(modelLoc, false, ref model);
             GL.UniformMatrix4(viewLoc, false, ref view);
             GL.UniformMatrix4(projLoc, false, ref projection);
+
+            var normalMatrix = Matrix4.Transpose(Matrix4.Invert(model));
+            GL.UniformMatrix4(normalMatLoc, false, ref normalMatrix);
+
+            Vector3 lightPos = new Vector3(0, 0, zoom);
+            int lightPosLoc = GL.GetUniformLocation(shaderProgram, "lightPos");
+            GL.Uniform3(lightPosLoc, lightPos);
+
+            Vector3 viewPos = new Vector3(0, 0, zoom);
+            int viewPosLoc = GL.GetUniformLocation(shaderProgram, "viewPos");
+            GL.Uniform3(viewPosLoc, viewPos);
 
             GL.BindVertexArray(vao);
             GL.DrawElements(PrimitiveType.Triangles, triangleCount * 3, DrawElementsType.UnsignedInt, 0);
@@ -135,12 +151,17 @@ namespace Laba3
 
         private void InitializeBuffers(List<Vertex> vertices, List<Triangle> triangles)
         {
-            float[] vertexData = new float[vertices.Count * 3];
+            Vector3[] normals = CalculateNormals(triangles);
+
+            float[] vertexData = new float[vertices.Count * 6];
             for (int i = 0; i < vertices.Count; i++)
             {
-                vertexData[i * 3] = vertices[i].X;
-                vertexData[i * 3 + 1] = vertices[i].Y;
-                vertexData[i * 3 + 2] = vertices[i].Z;
+                vertexData[i * 6] = vertices[i].X;
+                vertexData[i * 6 + 1] = vertices[i].Y;
+                vertexData[i * 6 + 2] = vertices[i].Z;
+                vertexData[i * 6 + 3] = normals[i].X;
+                vertexData[i * 6 + 4] = normals[i].Y;
+                vertexData[i * 6 + 5] = normals[i].Z;
             }
 
             int[] indexData = new int[triangles.Count * 3];
@@ -165,10 +186,42 @@ namespace Laba3
                           indexData, BufferUsageHint.StaticDraw);
 
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false,
-                                   3 * sizeof(float), 0);
+                                   6 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
 
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false,
+                                   6 * sizeof(float), 3 * sizeof(float));
+            GL.EnableVertexAttribArray(1);
+
             GL.BindVertexArray(0);
+        }
+
+        private Vector3[] CalculateNormals(List<Triangle> triangles)
+        {
+            Vector3[] normals = new Vector3[vertices.Count];
+
+            foreach (var triangle in triangles)
+            {
+                Vector3 v0 = new Vector3(vertices[triangle.V1].X, vertices[triangle.V1].Y, vertices[triangle.V1].Z);
+                Vector3 v1 = new Vector3(vertices[triangle.V2].X, vertices[triangle.V2].Y, vertices[triangle.V2].Z);
+                Vector3 v2 = new Vector3(vertices[triangle.V3].X, vertices[triangle.V3].Y, vertices[triangle.V3].Z);
+
+                Vector3 edge1 = v1 - v0;
+                Vector3 edge2 = v2 - v0;
+                Vector3 triangleNormal = Vector3.Cross(edge1, edge2).Normalized();
+
+                normals[triangle.V1] += triangleNormal;
+                normals[triangle.V2] += triangleNormal;
+                normals[triangle.V3] += triangleNormal;
+            }
+
+            for (int i = 0; i < normals.Length; i++)
+            {
+                if (normals[i].Length > 0)
+                    normals[i] = normals[i].Normalized();
+            }
+
+            return normals;
         }
 
         private int CreateShaderProgram()
@@ -176,24 +229,55 @@ namespace Laba3
             string vertexShaderSource = @"
                 #version 330 core
                 layout (location = 0) in vec3 aPosition;
+                layout (location = 1) in vec3 aNormal;
 
                 uniform mat4 model;
                 uniform mat4 view;
                 uniform mat4 projection;
+                uniform mat4 normalMatrix;
+
+                out vec3 FragPos;
+                out vec3 Normal;
 
                 void main()
                 {
-                    gl_Position = projection * view * model * vec4(aPosition, 1.0);
+                    FragPos = vec3(model * vec4(aPosition, 1.0));
+                    Normal = mat3(normalMatrix) * aNormal;
+                    gl_Position = projection * view * vec4(FragPos, 1.0);
                 }
             ";
 
             string fragmentShaderSource = @"
                 #version 330 core
+                in vec3 FragPos;
+                in vec3 Normal;
+
+                uniform vec3 lightPos;
+                uniform vec3 viewPos;
+
                 out vec4 FragColor;
 
                 void main()
                 {
-                    FragColor = vec4(0.7, 0.7, 0.9, 1.0);
+                    vec3 objectColor = vec3(0.6, 0.7, 0.9);
+                    vec3 lightColor = vec3(1.0, 1.0, 1.0);
+
+                    float ambientStrength = 0.3;
+                    vec3 ambient = ambientStrength * lightColor;
+
+                    vec3 norm = normalize(Normal);
+                    vec3 lightDir = normalize(lightPos - FragPos);
+                    float diff = max(dot(norm, lightDir), 0.0);
+                    vec3 diffuse = diff * lightColor;
+
+                    float specularStrength = 0.5;
+                    vec3 viewDir = normalize(viewPos - FragPos);
+                    vec3 reflectDir = reflect(-lightDir, norm);
+                    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+                    vec3 specular = specularStrength * spec * lightColor;
+
+                    vec3 result = (ambient + diffuse + specular) * objectColor;
+                    FragColor = vec4(result, 1.0);
                 }
             ";
 
