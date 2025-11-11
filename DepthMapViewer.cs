@@ -20,7 +20,7 @@ namespace Laba3
         private Matrix4 model;
 
         private float rotationX = 0.0f;
-        private float rotationY = 0.0f;
+        private float rotationY = 180.0f; // ИЗМЕНЕНО: начальный поворот 180 градусов
         private float zoom = -50.0f;
 
         private List<Vertex> vertices;
@@ -97,6 +97,8 @@ namespace Laba3
                 new Vector3(0, 1, 0));
 
             model = Matrix4.Identity;
+            model *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(180.0f));
+            model *= Matrix4.CreateRotationY(MathHelper.DegreesToRadians(180.0f));
             model *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(rotationX));
             model *= Matrix4.CreateRotationY(MathHelper.DegreesToRadians(rotationY));
 
@@ -134,14 +136,15 @@ namespace Laba3
             if (input.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.Escape))
                 Close();
 
+            // ИЗМЕНЕНО: чувствительность с 2.0f на 0.5f
             if (input.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.Up))
-                rotationX += 2.0f;
+                rotationX += 0.5f;
             if (input.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.Down))
-                rotationX -= 2.0f;
+                rotationX -= 0.5f;
             if (input.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.Left))
-                rotationY -= 2.0f;
+                rotationY -= 0.5f;
             if (input.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.Right))
-                rotationY += 2.0f;
+                rotationY += 0.5f;
 
             if (input.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.W))
                 zoom += 1.0f;
