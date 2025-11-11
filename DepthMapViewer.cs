@@ -19,9 +19,9 @@ namespace Laba3
         private Matrix4 view;
         private Matrix4 model;
 
-        private float rotationX = 0.0f;
-        private float rotationY = 180.0f; // ИЗМЕНЕНО: начальный поворот 180 градусов
-        private float zoom = -50.0f;
+        private float rotationX = 180.0f;
+        private float rotationY = 0.0f; 
+        private float zoom = -500.0f;
 
         private List<Vertex> vertices;
 
@@ -97,8 +97,6 @@ namespace Laba3
                 new Vector3(0, 1, 0));
 
             model = Matrix4.Identity;
-            model *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(180.0f));
-            model *= Matrix4.CreateRotationY(MathHelper.DegreesToRadians(180.0f));
             model *= Matrix4.CreateRotationX(MathHelper.DegreesToRadians(rotationX));
             model *= Matrix4.CreateRotationY(MathHelper.DegreesToRadians(rotationY));
 
