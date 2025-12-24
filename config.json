@@ -1,0 +1,46 @@
+{
+  "DepthMapPath": "DepthMaps1-20/DepthMap_8.dat",
+
+  "Mesh": { "XYScale": 1.0, "ZScale": 100.0 },
+
+  "Exports": [
+    { "Format": "ply", "Path": "out/output.ply" },
+    { "Format": "obj", "Path": "out/output.obj" },
+    { "Format": "stl", "Path": "out/output.stl" }
+  ],
+
+  "Camera": {
+    "Position": [0, 0, -500],
+    "Target": [0, 0, 50],
+    "Up": [0, 1, 0]
+  },
+
+  "Light": {
+    "Direction": [0.3, 0.2, 1.0],
+    "Color": [1, 1, 1],
+    "Intensity": 0.95
+  },
+
+  "Shading": {
+    "Model": "OrenNayar",
+    "ObjectColor": [0.6, 0.7, 0.9],
+    "AmbientStrength": 0.10,
+    "Kd": 1.0,
+    "Ks": 0.0,
+    "Shininess": 1.0,
+    "RoughnessDegrees": 35.0
+  },
+
+  "Render": {
+    "SaveBmp": true,
+    "BmpPath": "out/orennayar.bmp",
+    "Width": 1200,
+    "Height": 800,
+    "Title": "Depth Map Viewer (LR4) - OrenNayar",
+    "BackgroundRgb": [30, 30, 30],
+    "Exposure": 1.0,
+    "Gamma": 2.2,
+    "ModelRotationXDegrees": 180.0,
+    "ModelRotationYDegrees": 0.0
+  }
+}
